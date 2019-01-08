@@ -1,0 +1,46 @@
+baseurl = "https://muhammadagung.akakom.ac.id/"
+languageCode = "en-US"
+title = "Muhammad Agung"
+# Enable comments by entering your Disqus shortname
+disqusShortname = ""
+# Enable Google Analytics by entering your tracking code
+googleAnalytics = ""
+theme = "hugo-sustain"
+
+[permalinks]
+  post = "/:year/:month/:day/:slug"
+
+[params]
+  avatar = "profile.jpg"
+  author = "Muhammad Agung Nugroho"
+  description = "lecture website"
+
+  # Custom assets can be linked with their paths relative to static/
+  custom_css = []
+  custom_js  = []
+
+[params.social]
+  Github        = "username"
+  Email         = "email@example.com"
+  Twitter       = "username"
+  LinkedIn      = "https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=3&cad=rja&uact=8&ved=2ahUKEwil7NW86tbeAhUQWX0KHaHrDS0QFjACegQICRAB&url=https%3A%2F%2Fid.linkedin.com%2Fin%2Fmagungnugroho&usg=AOvVaw0WNuwzZFEk45TG2Q14yJBa"
+  Stackoverflow = "username"
+  Medium        = "username"
+  Telegram      = "username"
+
+## Main Menu
+[[menu.main]]
+  name = "blog"
+  weight = 100
+  identifier = "blog"
+  url = "/blog/"
+#[[menu.main]]
+#  name = "projects"
+#  identifier = "projects"
+#  weight = 200
+#  url = "/projects/"
+[[menu.main]]
+  name = "resume"
+  identifier = "resume"
+  weight = 300
+  url = "/resume/"
